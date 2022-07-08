@@ -1,4 +1,4 @@
-
+https://github.com/aquasecurity/trivy.git
 from otawslibs import generate_aws_session
 import sys, os, argparse, logging, yaml, json, json_log_formatter, pathlib, boto3
 
@@ -101,7 +101,6 @@ def _scheduleFactory(properties, args):
 
                     LOGGER.info(
                         f'Found image tags details for image scanning : {image_versions}')
-                    client = boto3.client('ecr')
                     LOGGER.info( f'Scanning ECR images resources in {region} region based on provided image versions tags {image_versions}')
                     image_repos =_list_imageVersion_repos(client, image_versions)
                     _scan_imageVersion_repos(client, image_repos)
@@ -109,7 +108,6 @@ def _scheduleFactory(properties, args):
                 if remote_repository:
                     LOGGER.info(
                         f'Found remote repository details for image scanning : {remote_repository}')
-                    client = boto3.client('ecr')
                     for repo in remote_repository:
                         LOGGER.info( f'Scanning ECR images resources in {region} region based on provided repository  {repo}')
                         images = _get_images(client, repo)
