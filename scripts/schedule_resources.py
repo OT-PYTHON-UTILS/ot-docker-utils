@@ -1,4 +1,4 @@
-https://github.com/aquasecurity/trivy.git
+
 from otawslibs import generate_aws_session
 import sys, os, argparse, logging, yaml, json, json_log_formatter, pathlib, boto3
 
