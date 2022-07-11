@@ -6,8 +6,12 @@ from botocore.exceptions import ClientError
 
 SCRIPT_PATH = pathlib.Path(__file__).parent.resolve()
 sys.path.insert(1, f'{SCRIPT_PATH}/../lib')
+sys.path.insert(2, f'{SCRIPT_PATH}/../otawslibs')
+
+import images_action_factory
 
 import load_yaml_config
+
 
 CONF_PATH_ENV_KEY = "CONF_PATH"
 LOG_PATH = "/ot/aws-resource-scheduler.log"
@@ -27,56 +31,12 @@ LOGGER.addHandler(FILE_HANDLER)
 LOGGER.addHandler(STREAM_HANDLER)
 
 
-def _get_images(client, repository):
-    images_details = client.describe_images(repositoryName=repository)
-    images = []
-    for imgdetails in range(len(images_details['imageDetails'])):
-        for image in images_details['imageDetails'][imgdetails]['imageTags']:
-            images.append(image)
-    return(images)
-
-
-def _get_all_repositories(client):
-    repositories = []
-    get_repositories = client.describe_repositories()
-    for repository in range(len(get_repositories)):
-        repositories.append(
-            get_repositories['repositories'][repository]['repositoryName'])
-    return repositories
-
-
-
-def _scan_images(client, images, repository):
-    for image in images:
-            command = f"trivy image --format template --template '@trivy/contrib/html.tpl' -o reports/{image}.html 727357989976.dkr.ecr.us-east-1.amazonaws.com/{repository}:{image}"
-            print(
-                f"trivy image --format template --template '@trivy/contrib/html.tpl' -o reports/{image}.html 727357989976.dkr.ecr.us-east-1.amazonaws.com/{repository}:{image}")
-            os.system(command)
-
-#   will list the images with repository having the image_version pass in the config
-def _list_imageVersion_repos(client, image_versions):
-    images_repo = {}
-    repositories = _get_all_repositories(client)
-    for repository in repositories:
-        image = client.list_images(repositoryName=repository)
-        image_ids = image['imageIds']
-        for image_version in image_versions:
-            for image_id in range(len(image_ids)):
-                if image['imageIds'][image_id]['imageTag'] == image_version :
-                    images_repo.update({repository : image['imageIds'][image_id]['imageTag']})
-
-    return images_repo
-
-def _scan_imageVersion_repos(client, image_repos):
-    for repo,image in image_repos.items():
-        command = f"trivy image --format template --template '@trivy/contrib/html.tpl' -o reports/{repo}-{image}.html 727357989976.dkr.ecr.us-east-1.amazonaws.com/{repo}:{image}"
-        os.system(command)
-
 def _scheduleFactory(properties, args):
 
     try:
 
         client = boto3.client('ecr')
+        imageScansActions = images_action_factory.imageScansActions(client)
         for property in properties:
 
             if property == "ECR":
@@ -102,16 +62,16 @@ def _scheduleFactory(properties, args):
                     LOGGER.info(
                         f'Found image tags details for image scanning : {image_versions}')
                     LOGGER.info( f'Scanning ECR images resources in {region} region based on provided image versions tags {image_versions}')
-                    image_repos =_list_imageVersion_repos(client, image_versions)
-                    _scan_imageVersion_repos(client, image_repos)
+                    image_repos = imageScansActions._list_imageVersion_repos(image_versions)
+                    imageScansActions._scan_imageVersion_repos(image_repos)
 
                 if remote_repository:
                     LOGGER.info(
                         f'Found remote repository details for image scanning : {remote_repository}')
                     for repo in remote_repository:
                         LOGGER.info( f'Scanning ECR images resources in {region} region based on provided repository  {repo}')
-                        images = _get_images(client, repo)
-                        _scan_images(client, images, repo)
+                        images = imageScansActions._get_images(repo)
+                        imageScansActions._scan_images(images, repo)
                 else:
                     LOGGER.warning(
                         f'Found ECR section in config file but no repository  details mentioned for image scanning')
