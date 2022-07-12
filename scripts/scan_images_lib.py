@@ -5,12 +5,12 @@ import sys, os, argparse, logging, yaml, json, json_log_formatter, pathlib, boto
 from botocore.exceptions import ClientError
 
 SCRIPT_PATH = pathlib.Path(__file__).parent.resolve()
-sys.path.insert(1, f'{SCRIPT_PATH}/../lib')
-sys.path.insert(2, f'{SCRIPT_PATH}/../otawslibs')
+sys.path.insert(1, f'{SCRIPT_PATH}/./ot-filesystem-libs/otfilesystemlibs')
+sys.path.insert(2, f'{SCRIPT_PATH}/../ot-aws-libs/otawslibs/')
 
 import images_action_factory
 
-import load_yaml_config
+from otfilesystemlibs import yaml_manager
 
 
 CONF_PATH_ENV_KEY = "CONF_PATH"
@@ -90,8 +90,9 @@ def _scheduleResources(args):
 
     LOGGER.info(
         f'Fetching properties from conf file: {args.property_file_path}.')
-
-    properties = load_yaml_config._getProperty(args.property_file_path)
+    
+    yaml_managers = yaml_manager.getYamlLoader()
+    properties = yaml_managers._loadYaml(args.property_file_path)
 
     LOGGER.info(f'Properties fetched from conf file.')
 
