@@ -1,0 +1,13 @@
+ECR:
+  aws_profile: default
+  region: us-east-1
+
+  repo:
+    - scanningimages
+    - replicascanningimages
+
+  image_versions:
+    - latest
+    - minikube
+    - 2.0
+    - mysql
