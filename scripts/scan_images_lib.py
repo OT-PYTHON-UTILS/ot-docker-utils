@@ -1,17 +1,9 @@
-
-from otawslibs import generate_aws_session
-import sys, os, argparse, logging, yaml, json, json_log_formatter, pathlib, boto3
-
+import sys, os, argparse, logging, yaml, json
+import json_log_formatter
+import boto3
 from botocore.exceptions import ClientError
-
-SCRIPT_PATH = pathlib.Path(__file__).parent.resolve()
-sys.path.insert(1, f'{SCRIPT_PATH}/./ot-filesystem-libs/otfilesystemlibs')
-sys.path.insert(2, f'{SCRIPT_PATH}/../ot-aws-libs/otawslibs/')
-
-import images_action_factory
-
+from otawslibs import generate_aws_session , images_action_factory
 from otfilesystemlibs import yaml_manager
-
 
 CONF_PATH_ENV_KEY = "CONF_PATH"
 LOG_PATH = "/ot/aws-resource-scheduler.log"
@@ -39,42 +31,43 @@ def _scheduleFactory(properties, args):
         imageScansActions = images_action_factory.imageScansActions(client)
         for property in properties:
 
-            if property == "ECR":
+            if property == "ecr":
 
                 LOGGER.info(f'Connecting to AWS.')
 
-                if properties['ECR']['aws_profile']:
+                if properties['ecr']['aws_profile']:
                     session = generate_aws_session._create_session(
-                        properties['ECR']['aws_profile'])
+                        properties['ecr']['aws_profile'])
                 else:
                     session = generate_aws_session._create_session()
 
                 LOGGER.info(f'Connection to AWS established.')
 
-                LOGGER.info(f'Reading ECR config')
+                LOGGER.info(f'Reading ecr config')
 
-                remote_repository = properties['ECR']['repo']
-                image_versions = properties['ECR']['image_versions']
-                region = properties['ECR']["region"]
+                remote_repository = properties['ecr']['repos']
+                image_versions = properties['ecr']['image_versions']
+                region = properties['ecr']["region"]
+                ecrurl = properties['ecr']['ecrurl']
 
                 if image_versions:
 
                     LOGGER.info(
                         f'Found image tags details for image scanning : {image_versions}')
-                    LOGGER.info( f'Scanning ECR images resources in {region} region based on provided image versions tags {image_versions}')
-                    image_repos = imageScansActions._list_imageVersion_repos(image_versions)
-                    imageScansActions._scan_imageVersion_repos(image_repos)
+                    LOGGER.info( f'Scanning ecr images resources in {region} region based on provided image versions tags {image_versions}')
+                    image_repos = imageScansActions._list_imageversion_repos(image_versions)
+                    imageScansActions._scan_imageversion_repos(image_repos, ecrurl)
 
                 if remote_repository:
                     LOGGER.info(
                         f'Found remote repository details for image scanning : {remote_repository}')
                     for repo in remote_repository:
-                        LOGGER.info( f'Scanning ECR images resources in {region} region based on provided repository  {repo}')
+                        LOGGER.info( f'Scanning ecr images resources in {region} region based on provided repository  {repo}')
                         images = imageScansActions._get_images(repo)
-                        imageScansActions._scan_images(images, repo)
+                        imageScansActions._scan_images(images, repo, ecrurl)
                 else:
                     LOGGER.warning(
-                        f'Found ECR section in config file but no repository  details mentioned for image scanning')
+                        f'Found ecr section in config file but no repository  details mentioned for image scanning')
             else:
                 LOGGER.info("Scanning AWS service details in config")
 
@@ -86,16 +79,15 @@ def _scheduleFactory(properties, args):
             raise e
 
 
-def _scheduleResources(args):
+def _scanimages(args):
 
     LOGGER.info(
         f'Fetching properties from conf file: {args.property_file_path}.')
-    
+
     yaml_managers = yaml_manager.getYamlLoader()
     properties = yaml_managers._loadYaml(args.property_file_path)
 
     LOGGER.info(f'Properties fetched from conf file.')
-
 
     _scheduleFactory(properties, args)
 
@@ -106,4 +98,4 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--property-file-path", help="Provide path of property file",
                         default=os.environ[CONF_PATH_ENV_KEY], type=str)
     args = parser.parse_args()
-    _scheduleResources(args)
+    _scanimages(args)
