@@ -6,7 +6,7 @@ from otawslibs import generate_aws_session , images_action_factory
 from otfilesystemlibs import yaml_manager
 
 CONF_PATH_ENV_KEY = "CONF_PATH"
-LOG_PATH = "/ot/aws-resource-scheduler.log"
+LOG_PATH = "/ot/scans_images.log"
 
 
 FORMATTER = json_log_formatter.VerboseJSONFormatter()
