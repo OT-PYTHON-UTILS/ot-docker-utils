@@ -1,0 +1,21 @@
+repositories:
+    specs:
+        plateforms:
+            github:
+                users:
+                    - public:Abkt2001:Jenkins       #mode:user:repo
+                    - public:AbktOps                #no repo means will scan all repo
+                    - public:b44rawat
+                    - private:Abkt2001
+
+                organisations:
+                    - public:AbktOps:OT-TRAINING:spinnaker-study      # - user:org:public/priv:repo
+                    - public:AbktOps:OT-TRAINING
+
+            gitlab:
+                users:
+                    - public:abhiGurukulam
+                    # - public:awsGurukulam:assignment
+
+                organisations:
+

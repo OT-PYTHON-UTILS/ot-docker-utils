@@ -1,0 +1,8 @@
+setuptools
+pyyaml
+wheel
+pyinstaller
+JSON-log-formatter
+giturlparse
+requests
+git+https://github.com/OT-PYTHON-UTILS/ot-filesystem-libs.git
