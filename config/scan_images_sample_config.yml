@@ -1,14 +1,10 @@
 ecr:
-  aws_profile: default
-  region: us-east-1
-  ecrurl: 727357989976.dkr.ecr.us-east-1.amazonaws.com
+  aws_profile:
+  region:
+  account:
+  repositories:
 
-  repos:
-    - scanningimages
-    - replicascanningimages
 
-  image_versions:
-    - latest
-    - minikube
-    - 2.0
-    - mysql
+# Above config will scan only the ECR private account
+
+
