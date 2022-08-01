@@ -16,17 +16,19 @@ This utility have two parts:-
   ```
   ecr:
     aws_profile: profile_name
+    
     region: region_name
-    ecrurl: ecr_url_link         #Example -> 727357989976.dkr.ecr.us-east-1.amazonaws.com
+    
+    account: aws_account_id
 
-    repos:
-        - repo_name1             #mention repo_name here
-        - repo_name2
+    repositories:
 
-    image_versions:
-        - v1
-        - v2
   ```
+#### Note:-
+#### In the above repositories section we can mention the multiple repositories in two ways:
+  If we want to scan the multiple version of repository then mention the repository-name with versions like  repository_name:v1,v2,v3
+
+  If we want to scan all the versions of repository then mention the repository-name with all versions like  repository_name:*
 - Creds Scanner
   ```
     repositories:
