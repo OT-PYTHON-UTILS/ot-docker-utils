@@ -1,0 +1,10 @@
+ecr:
+  aws_profile:
+  region:
+  account:
+  repositories:
+
+
+# Above config will scan only the ECR private account
+
+
