@@ -1,8 +1,11 @@
 ecr:
-  aws_profile:
-  region:
-  account:
-  repositories:
+  aws_profiles:
+    profile_name:
+      aws_regions:
+        region_name:
+          repositories:
+            - repo:tags
+            - repo:*
 
 
 # Above config will scan only the ECR private account

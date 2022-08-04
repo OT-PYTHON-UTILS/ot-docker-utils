@@ -33,64 +33,59 @@ def _scanfactory(properties, args):
 
     try:
 
-        client = boto3.client('ecr')
-        scanImages = scan_images_factory.scanImages(client)
-        ecr_repositories = properties['ecr']['repositories']
-        aws_region = properties['ecr']["region"]
-        aws_account = properties['ecr']['account']
-        ecr_url = aws_account+".dkr.ecr."+aws_region+".amazonaws.com"
-
         for property in properties:
 
             if property == "ecr":
 
-                LOGGER.info(f'Connecting to AWS.')
+                for profile in properties['ecr']['aws_profiles']:
 
-                if properties['ecr']['aws_profile']:
-                    session = generate_aws_session._create_session(
-                        properties['ecr']['aws_profile'])
-                else:
-                    session = generate_aws_session._create_session()
+                    LOGGER.info(f'Connecting to AWS.')
+                    session = generate_aws_session._create_session(profile)
+                    client = boto3.client('ecr')
+                    scanImages = scan_images_factory.scanImages(client)
 
-                LOGGER.info(f'Connection to AWS established.')
+                    LOGGER.info(f'Connection to AWS established with profile {profile}.')
 
-                LOGGER.info(f'Reading ecr config')
+                    LOGGER.info(f'Reading ecr config for the profile {profile}')
 
-                ecr_repositories = properties['ecr']['repositories']
-                aws_region = properties['ecr']["region"]
-                aws_account = properties['ecr']['account']
-                ecr_url = aws_account+".dkr.ecr."+aws_region+".amazonaws.com"
+                    aws_account = boto3.client('sts').get_caller_identity()['Account']
+                    aws_regions = properties['ecr']['aws_profiles'][profile]['aws_regions']
 
-                if ecr_repositories:
-                    LOGGER.info(
-                        f'Found ecr_repositories details for image scanning : {ecr_repositories}')
+                    for aws_region in aws_regions:
+                        ecr_url = aws_account+".dkr.ecr."+aws_region+".amazonaws.com"
+                        ecr_repositories = properties['ecr']['aws_profiles'][profile]['aws_regions'][aws_region]['repositories']
 
-                    for repository in ecr_repositories:
-                        fetched_repository_versions = re.split(
-                            '[:]', repository)
-                        LOGGER.info(
-                            f'Scanning ecr_repositories in {aws_region} region based on provided repository  {repository}')
-
-                        if fetched_repository_versions[1] == "*":
-                            repository_name = fetched_repository_versions[0]
+                        if ecr_repositories:
                             LOGGER.info(
-                            f'Scanning all versions of {repository_name} ecr-repository in {aws_region} region')
+                                f'Found ecr_repositories details for image scanning : {ecr_repositories}')
 
-                            scanImages._scan_images_with_all_versions(
-                                ecr_url, repository_name)
+                            for repository in ecr_repositories:
+                                fetched_repository_versions = re.split(
+                                    '[:]', repository)
+                                LOGGER.info(
+                                    f'Scanning ecr_repositories in {aws_region} region based on provided repository  {repository}')
 
+                                if fetched_repository_versions[1] == "*":
+                                    repository_name = fetched_repository_versions[0]
+                                    LOGGER.info(
+                                    f'Scanning all versions of {repository_name} ecr-repository in {aws_region} region')
+
+                                    scanImages._scan_images_with_all_versions(
+                                        ecr_url, repository_name)
+
+                                else:
+                                    fetched_repository_versions[1] = list(
+                                        fetched_repository_versions[1].split(","))
+                                    repository_versions = fetched_repository_versions[1]
+                                    repository_name = fetched_repository_versions[0]
+
+                                    LOGGER.info(
+                                    f'Scanning the versions {repository_versions} of {repository_name} ecr-repository in {aws_region} region')
+                                    scanImages._scan_images_with_given_versions(
+                                        ecr_url, repository_name, repository_versions)
                         else:
-                            fetched_repository_versions[1] = list(
-                                fetched_repository_versions[1].split(","))
-                            repository_versions = fetched_repository_versions[1]
-                            repository_name = fetched_repository_versions[0]
-                            LOGGER.info(
-                            f'Scanning the versions {repository_versions} of {repository_name} ecr-repository in {aws_region} region')
-                            scanImages._scan_images_with_given_versions(
-                                ecr_url, repository_name, repository_versions)
-                else:
-                    LOGGER.warning(
-                        f'Found ecr section in config file but no repository  details mentioned for image scanning')
+                            LOGGER.warning(
+                                f'Found ecr section in config file but no repository  details mentioned for image scanning')
             else:
                 LOGGER.info("Scanning AWS service details in config")
 
