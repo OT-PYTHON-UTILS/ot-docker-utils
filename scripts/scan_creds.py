@@ -8,7 +8,7 @@ from botocore.exceptions import ClientError
 from otfilesystemlibs import yaml_manager
 
 CONF_PATH_ENV_KEY = "CONF_PATH"
-LOG_PATH = "/tmp/ot/creds-scanner.log"
+LOG_PATH = "/ot/creds-scanner.log"
 
 FORMATTER = json_log_formatter.VerboseJSONFormatter()
 LOGGER = logging.getLogger()
@@ -27,23 +27,23 @@ LOGGER.addHandler(STREAM_HANDLER)
 
 def _fetch_github_repo_urls(user):
     urls = []
-    data = re.split('[:]',user)
-    if data[0] == "public":
+    input_user_data = re.split('[:]',user)
+    if input_user_data[0] == "public":
         if len(re.split('[:]',user)) == 3:
-            github_username = data[1]
-            github_repo = data[2]
+            github_username = input_user_data[1]
+            github_repo = input_user_data[2]
             URL =  "https://github.com/"+github_username+"/"+github_repo+".git"
             urls.append(URL)
 
         if len(re.split('[:]',user)) == 2:
-            data = re.split('[:]',user)
-            github_username = data[1]
+            input_user_data = re.split('[:]',user)
+            github_username = input_user_data[1]
             URL = "https://api.github.com/users/"+github_username+"/repos"
             response = requests.get(url = URL)
-            for x in range(len(response.json())):
-                urls.append(response.json()[x]["clone_url"])
+            for url in range(len(response.json())):
+                urls.append(response.json()[url]["clone_url"])
 
-    if data[0] == "private":
+    if input_user_data[0] == "private":
         pass
 
     return urls
@@ -51,23 +51,23 @@ def _fetch_github_repo_urls(user):
 
 def _fetch_gitlab_repo_urls(user):
     urls = []
-    data = re.split('[:]',user)
-    if data[0] == "public":
+    input_user_data = re.split('[:]',user)
+    if input_user_data[0] == "public":
         if len(re.split('[:]',user)) == 3:
-            gitlab_username = data[1]
-            gitlab_repo = data[2]
+            gitlab_username = input_user_data[1]
+            gitlab_repo = input_user_data[2]
             URL = "https://gitlab.com/"+gitlab_username+"/"+gitlab_repo+".git"
             urls.append(URL)
 
         if len(re.split('[:]',user)) == 2:
-            data = re.split('[:]',user)
-            gitlab_username = data[1]
+            input_user_data = re.split('[:]',user)
+            gitlab_username = input_user_data[1]
             URL = "https://gitlab.com/api/v4/users/"+gitlab_username+"/projects/"
             response = requests.get(url = URL)
-            for x in range(len(response.json())):
-                urls.append(response.json()[x]['http_url_to_repo'])
+            for url in range(len(response.json())):
+                urls.append(response.json()[url]['http_url_to_repo'])
 
-    if data[0] == "private":
+    if input_user_data[0] == "private":
         pass
 
     return urls
@@ -75,26 +75,26 @@ def _fetch_gitlab_repo_urls(user):
 
 def _fetch_github_org_urls(org):
     urls = []
-    data = re.split('[:]',org)
-    print(data)
-    if data[0] == "public":
+    input_user_data = re.split('[:]',org)
+    print(input_user_data)
+    if input_user_data[0] == "public":
         print(len(re.split('[:]',org)))
         if len(re.split('[:]',org)) == 4:
-            github_orgname = data[2]
-            github_orgrepo = data[3]
+            github_orgname = input_user_data[2]
+            github_orgrepo = input_user_data[3]
             URL =  "https://github.com/"+github_orgname+"/"+github_orgrepo+".git"
             urls.append(URL)
 
         if len(re.split('[:]',org)) == 3:
-            data = re.split('[:]',org)
-            github_orgname = data[2]
+            input_user_data = re.split('[:]',org)
+            github_orgname = input_user_data[2]
             URL = "https://api.github.com/orgs/"+github_orgname+"/repos"
             print("Without repo => ",URL)
             response = requests.get(url = URL)
-            for x in range(len(response.json())):
-                urls.append(response.json()[x]["clone_url"])
+            for url in range(len(response.json())):
+                urls.append(response.json()[url]["clone_url"])
 
-    if data[0] == "private":
+    if input_user_data[0] == "private":
         pass
 
     return urls
@@ -102,16 +102,16 @@ def _fetch_github_org_urls(org):
 def _fetch_gitlab_org_urls(orgs):
     urls = []
     if len(re.split('[:]',orgs)) == 2:
-        data = re.split('[:]',orgs)
-        gitlab_orgs = data[0]
+        input_user_data = re.split('[:]',orgs)
+        gitlab_orgs = input_user_data[0]
         URL = "https://api.gitlab.com/orgs/"+gitlab_orgs+"/repos"
         print(URL)
         response = requests.get(url = URL)
-        for x in range(len(response.json())):
-            if data[1]:
-                urls.append(response.json()[x]["clone_url"])
+        for url in range(len(response.json())):
+            if input_user_data[1]:
+                urls.append(response.json()[url]["clone_url"])
             else:
-                urls.append(response.json()[x]["clone_url"])
+                urls.append(response.json()[url]["clone_url"])
 
     return urls
 
