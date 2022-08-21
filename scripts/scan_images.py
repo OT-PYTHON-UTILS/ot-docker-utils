@@ -13,7 +13,7 @@ from otscannerlibs import scan_images_factory
 from otfilesystemlibs import yaml_manager
 
 CONF_PATH_ENV_KEY = "CONF_PATH"
-LOG_PATH = "/tmp/scans_images.log"
+LOG_PATH = "/ot/scans_images.log"
 
 
 FORMATTER = json_log_formatter.VerboseJSONFormatter()
@@ -41,7 +41,7 @@ def _scanfactory(properties, args):
                 for profile in properties['ecr']['aws_profiles']:
 
                     aws_regions = properties['ecr']['aws_profiles'][profile]['aws_regions']
-                    
+
                     for aws_region in aws_regions:
 
                         LOGGER.info(f'Connecting to AWS.')
@@ -52,8 +52,14 @@ def _scanfactory(properties, args):
                         LOGGER.info(f'Connection to AWS established with profile {profile}.')
 
                         LOGGER.info(f'Reading ecr config for the profile {profile}')
-
-                        aws_account = session.client('sts').get_caller_identity()['Account']
+                        try:
+                            aws_account = session.client('sts').get_caller_identity()['Account']
+                        except ClientError as e:
+                            if "InvalidClientTokenId" in str(e):
+                                logging.error(f"Invalid aws profile {profile} found. Error message: {e}")
+                            else:
+                                logging.error(f"{e}")
+                            break
 
                         ecr_url = aws_account+".dkr.ecr."+aws_region+".amazonaws.com"
                         ecr_repositories = properties['ecr']['aws_profiles'][profile]['aws_regions'][aws_region]['repositories']
