@@ -1,3 +1,7 @@
+try:
+    import configparser
+except:
+    from six.moves import configparser
 import sys
 import os
 import argparse
