@@ -13,7 +13,7 @@ from otscannerlibs import scan_images_factory
 from otfilesystemlibs import yaml_manager
 
 CONF_PATH_ENV_KEY = "CONF_PATH"
-LOG_PATH = "/ot/scans_images.log"
+LOG_PATH = "/var/log/ot/scans_images.log"
 
 
 FORMATTER = json_log_formatter.VerboseJSONFormatter()
