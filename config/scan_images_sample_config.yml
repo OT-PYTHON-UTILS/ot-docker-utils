@@ -1,13 +1,12 @@
 ecr:
   aws_profiles:
-    profile_name:
+    trademo:
       aws_regions:
-        region_name:
+        us-east-2:
           repositories:
             - repo:tags
             - repo:*
 
-
-# Above config will scan only the ECR private account
+# Above config will scan only ECR private repos
 
 

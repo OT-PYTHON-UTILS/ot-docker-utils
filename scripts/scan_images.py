@@ -8,11 +8,12 @@ import re
 import json_log_formatter
 import boto3
 from botocore.exceptions import ClientError
-from otawslibs import generate_aws_session, scan_images_factory
+from otawslibs import generate_aws_session
+from otscannerlibs import scan_images_factory
 from otfilesystemlibs import yaml_manager
 
 CONF_PATH_ENV_KEY = "CONF_PATH"
-LOG_PATH = "/ot/scans_images.log"
+LOG_PATH = "/tmp/scans_images.log"
 
 
 FORMATTER = json_log_formatter.VerboseJSONFormatter()
@@ -39,19 +40,21 @@ def _scanfactory(properties, args):
 
                 for profile in properties['ecr']['aws_profiles']:
 
-                    LOGGER.info(f'Connecting to AWS.')
-                    session = generate_aws_session._create_session(profile)
-                    client = boto3.client('ecr')
-                    scanImages = scan_images_factory.scanImages(client)
-
-                    LOGGER.info(f'Connection to AWS established with profile {profile}.')
-
-                    LOGGER.info(f'Reading ecr config for the profile {profile}')
-
-                    aws_account = boto3.client('sts').get_caller_identity()['Account']
                     aws_regions = properties['ecr']['aws_profiles'][profile]['aws_regions']
-
+                    
                     for aws_region in aws_regions:
+
+                        LOGGER.info(f'Connecting to AWS.')
+                        session = generate_aws_session._create_session(profile)
+                        client = session.client('ecr',region_name=aws_region)
+                        scanImages = scan_images_factory.scanImages(client)
+
+                        LOGGER.info(f'Connection to AWS established with profile {profile}.')
+
+                        LOGGER.info(f'Reading ecr config for the profile {profile}')
+
+                        aws_account = session.client('sts').get_caller_identity()['Account']
+
                         ecr_url = aws_account+".dkr.ecr."+aws_region+".amazonaws.com"
                         ecr_repositories = properties['ecr']['aws_profiles'][profile]['aws_regions'][aws_region]['repositories']
 
