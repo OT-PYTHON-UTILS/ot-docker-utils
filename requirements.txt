@@ -8,3 +8,4 @@ JSON-log-formatter
 giturlparse
 requests
 git+https://github.com/OT-PYTHON-UTILS/ot-filesystem-libs.git
+git+https://github.com/OT-PYTHON-UTILS/ot-scanner-libs.git@develop
