@@ -16,3 +16,5 @@ repositories:
 
                 organisations:
 
+
+# Above config will scan only public repositories of users and organisations
