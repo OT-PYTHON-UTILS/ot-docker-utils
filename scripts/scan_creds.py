@@ -1,14 +1,13 @@
-import argparse, re , requests
-from giturlparse import parse
+import argparse
 import logging
 import os
 import sys
 import json_log_formatter
-from botocore.exceptions import ClientError
 from otfilesystemlibs import yaml_manager
+from otscannerlibs import creds_action_factory
 
 CONF_PATH_ENV_KEY = "CONF_PATH"
-LOG_PATH = "/ot/creds-scanner.log"
+LOG_PATH = "/tmp/ot/creds-scanner.log"
 
 FORMATTER = json_log_formatter.VerboseJSONFormatter()
 LOGGER = logging.getLogger()
@@ -23,157 +22,61 @@ STREAM_HANDLER.setFormatter(FORMATTER)
 LOGGER.addHandler(FILE_HANDLER)
 LOGGER.addHandler(STREAM_HANDLER)
 
-
-
-def _fetch_github_repo_urls(user):
-    urls = []
-    input_user_data = re.split('[:]',user)
-    if input_user_data[0] == "public":
-        if len(re.split('[:]',user)) == 3:
-            github_username = input_user_data[1]
-            github_repo = input_user_data[2]
-            URL =  "https://github.com/"+github_username+"/"+github_repo+".git"
-            urls.append(URL)
-
-        if len(re.split('[:]',user)) == 2:
-            input_user_data = re.split('[:]',user)
-            github_username = input_user_data[1]
-            URL = "https://api.github.com/users/"+github_username+"/repos"
-            response = requests.get(url = URL)
-            for url in range(len(response.json())):
-                urls.append(response.json()[url]["clone_url"])
-
-    if input_user_data[0] == "private":
-        pass
-
-    return urls
-
-
-def _fetch_gitlab_repo_urls(user):
-    urls = []
-    input_user_data = re.split('[:]',user)
-    if input_user_data[0] == "public":
-        if len(re.split('[:]',user)) == 3:
-            gitlab_username = input_user_data[1]
-            gitlab_repo = input_user_data[2]
-            URL = "https://gitlab.com/"+gitlab_username+"/"+gitlab_repo+".git"
-            urls.append(URL)
-
-        if len(re.split('[:]',user)) == 2:
-            input_user_data = re.split('[:]',user)
-            gitlab_username = input_user_data[1]
-            URL = "https://gitlab.com/api/v4/users/"+gitlab_username+"/projects/"
-            response = requests.get(url = URL)
-            for url in range(len(response.json())):
-                urls.append(response.json()[url]['http_url_to_repo'])
-
-    if input_user_data[0] == "private":
-        pass
-
-    return urls
-
-
-def _fetch_github_org_urls(org):
-    urls = []
-    input_user_data = re.split('[:]',org)
-    print(input_user_data)
-    if input_user_data[0] == "public":
-        print(len(re.split('[:]',org)))
-        if len(re.split('[:]',org)) == 4:
-            github_orgname = input_user_data[2]
-            github_orgrepo = input_user_data[3]
-            URL =  "https://github.com/"+github_orgname+"/"+github_orgrepo+".git"
-            urls.append(URL)
-
-        if len(re.split('[:]',org)) == 3:
-            input_user_data = re.split('[:]',org)
-            github_orgname = input_user_data[2]
-            URL = "https://api.github.com/orgs/"+github_orgname+"/repos"
-            print("Without repo => ",URL)
-            response = requests.get(url = URL)
-            for url in range(len(response.json())):
-                urls.append(response.json()[url]["clone_url"])
-
-    if input_user_data[0] == "private":
-        pass
-
-    return urls
-
-def _fetch_gitlab_org_urls(orgs):
-    urls = []
-    if len(re.split('[:]',orgs)) == 2:
-        input_user_data = re.split('[:]',orgs)
-        gitlab_orgs = input_user_data[0]
-        URL = "https://api.gitlab.com/orgs/"+gitlab_orgs+"/repos"
-        print(URL)
-        response = requests.get(url = URL)
-        for url in range(len(response.json())):
-            if input_user_data[1]:
-                urls.append(response.json()[url]["clone_url"])
-            else:
-                urls.append(response.json()[url]["clone_url"])
-
-    return urls
-
-
-def _scan_users_repo(users,plateform):
-    for user in users:
-        if plateform == "github":
-            urls = _fetch_github_repo_urls(user)
-        if plateform == "gitlab":
-            urls = _fetch_gitlab_repo_urls(user)
-        for url in urls:
-            url_info = parse(url)
-            command = f"trivy repo --format template --template '@trivyreportformats/html.tpl' -o reports/{url_info.host}-{url_info.repo}.html {url}"
-            os.system(command)
-
-def _scan_org_repo(orgs,plateform):
-    for org in orgs:
-        if plateform == "github":
-            urls = _fetch_github_org_urls(org)
-        if plateform == "gitlab":
-            urls = _fetch_gitlab_org_urls(org)
-        for url in urls:
-            url_info = parse(url)
-            command = f"trivy repo --format template --template '@trivyreportformats/html.tpl' -o reports/{url_info.host}-{url_info.repo}.html {url}"
-            os.system(command)
-
-
 def _scanFactory(properties, args):
 
     try:
-
         for property in properties:
             LOGGER.info(f"Start to fetching the config file")
             if property == "repositories":
+                CredScanningAction = creds_action_factory.CredScanningActions()
                 LOGGER.info(f"Start fetching the plateforms")
                 for plateform in properties['repositories']['specs']['plateforms']:
                     if plateform == "github":
                         LOGGER.info(f"Start to fetching the github spec")
-                        if properties['repositories']['specs']['plateforms']['github']['users']:
-                            github_users = properties['repositories']['specs']['plateforms']['github']['users']
-                            LOGGER.info(f"Fetched gitub users data are : {github_users}")
-                            _scan_users_repo(github_users,plateform)
-                        if properties['repositories']['specs']['plateforms']['github']['organisations']:
-                            github_orgs = properties['repositories']['specs']['plateforms']['github']['organisations']
-                            LOGGER.info(f"Fetched gitub users data are : {github_orgs}")
-                            _scan_org_repo(github_orgs,plateform)
+                        try:
+                            for repo in properties['repositories']['specs']['plateforms']['github']:
+                                if repo!="users" and repo!="organisations":
+                                    LOGGER.warning("Mention the repository(users,organisations) you want to scan ")
+                                else:
+                                    if repo=="users":
+                                        github_users = properties['repositories']['specs']['plateforms']['github']['users']
+                                        LOGGER.info(f"Fetched github users data are : {github_users}")
+                                        CredScanningAction._scan_users_repo(github_users,plateform)
+
+                                    if repo=="organisations":
+                                        github_orgs = properties['repositories']['specs']['plateforms']['github']['organisations']
+                                        LOGGER.info(f"Fetched github orgs data are : {github_orgs}")
+                                        CredScanningAction._scan_org_repo(github_orgs,plateform)
+                        except TypeError as e:
+                            if "NoneType" in str(e):
+                                LOGGER.warn("Github section is empty no users and orgs section")
 
                     if plateform == "gitlab":
                         LOGGER.info(f"Start to fetching the plateform gitlab spec")
-                        if properties['repositories']['specs']['plateforms']['gitlab']['users']:
-                            gitlab_users = properties['repositories']['specs']['plateforms']['gitlab']['users']
-                            LOGGER.info(f"Fetched gitub users data are : {gitlab_users}")
-                            _scan_users_repo(gitlab_users,plateform)
-                        if properties['repositories']['specs']['plateforms']['gitlab']['organisations']:
-                            gitlab_orgs = properties['repositories']['specs']['plateforms']['gitlab']['organisations']
-                            LOGGER.info(f"Fetched gitub users data are : {gitlab_orgs}")
-                            _scan_org_repo(gitlab_orgs,plateform)
+                        try:
+                            for repos in properties['repositories']['specs']['plateforms']['gitlab']:
+                                if repos!="users" and repos!="organisations":
+                                    LOGGER.warning("Mention the repository(users,organisations) you want to scan ")
+                                else:
+                                    if repos=="users":
+                                        gitlab_users = properties['repositories']['specs']['plateforms']['gitlab']['users']
+                                        LOGGER.info(f"Fetched gitlab users data are : {gitlab_users}")
+                                        CredScanningAction._scan_users_repo(gitlab_users,plateform)
+                                    if repos=="organisations":
+                                        gitlab_orgs = properties['repositories']['specs']['plateforms']['gitlab']['organisations']
+                                        LOGGER.info(f"Fetched gitlab orgs data are : {gitlab_orgs}")
+                                        CredScanningAction._scan_org_repo(gitlab_orgs,plateform)
+                        except TypeError as e:
+                            if "NoneType" in str(e):
+                                LOGGER.warning("GitLab section is empty no users and orgs section")        
+            else:
+                LOGGER.error(f'Wrong format of the config file')
 
 
-    except ClientError as e:
-        if "An error occurred (AuthFailure)" in str(e):
-            raise Exception('Urls Failure!!!! .. Please mention valid Urls in property file or use valid structure of Urls section ').with_traceback(
+
+    except TypeError as e:
+        if "NoneType" in str(e):
+            raise Exception('Config file is empty, enter the valid data in the config file ').with_traceback(
                 e.__traceback__)
         else:
             raise e
