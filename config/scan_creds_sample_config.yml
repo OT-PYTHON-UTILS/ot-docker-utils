@@ -1,0 +1,20 @@
+repositories:
+    specs:
+        plateforms:
+            github:
+                users:
+                    - public:Abkt2001:Jenkins       #mode:user:repo
+                    - public:AbktOps                #no repo means will scan all repo
+
+                organisations:
+                    - public:AbktOps:OT-TRAINING:spinnaker-study      # - user:org:public/priv:repo
+                    - public:AbktOps:OT-TRAINING
+
+            gitlab:
+                users:
+                    - public:abhiGurukulam
+
+                organisations:
+
+
+# Above config will scan only public repositories of users and organisations
