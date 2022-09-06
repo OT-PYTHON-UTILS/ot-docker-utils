@@ -115,7 +115,19 @@ ecr:
     ```
     python3 scripts/scan_images.py
     ```
-
+## Steps to run the utility via Docker
+- Export the config file path via below command:
+  ```
+  export CONF_PATH="${pwd}/config/image_scanner_sample_config.yml"
+  ```
+- Run the command to build the image by following command:
+    ```
+    docker build -t opstree/image_scanner:1.0 -f Dockerfile .
+    ```
+- Run the docker images of above one created by following command:
+    ```
+    docker run -it --rm --name image_scanner -v ${CONF_PATH}:/etc/image_scanner_config.yml:ro -e CONF_PATH='/etc/image_scanner_config.yml' -v ~/.aws:/root/.aws -v  /var/run/docker.sock:/var/run/docker.sock opstree/image_scanner:1.0
+    ```
 
 ## Output
 - Scanning Logs
