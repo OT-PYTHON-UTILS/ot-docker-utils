@@ -7,7 +7,7 @@ from otfilesystemlibs import yaml_manager
 from otscannerlibs import creds_action_factory
 
 CONF_PATH_ENV_KEY = "CONF_PATH"
-LOG_PATH = "/tmp/ot/creds-scanner.log"
+LOG_PATH = "/var/log/ot/creds-scanner.log"
 
 FORMATTER = json_log_formatter.VerboseJSONFormatter()
 LOGGER = logging.getLogger()
