@@ -1,0 +1,29 @@
+ecr:
+  aws_profiles:
+    default:
+      aws_regions:
+        us-east-2:
+          repositories:
+            - repo:tags
+            - repo:v1
+            - repo:*
+        us-east-1:
+          repositories:
+            - repo:*
+    opstree:
+      aws_regions:
+        us-east-2:
+          repositories:
+            - repo:tags
+            - repo:v1
+            - repo:*
+        us-east-1:
+          repositories:
+            - repo:*
+  
+
+      
+
+# Above config will scan only ECR private repos
+
+

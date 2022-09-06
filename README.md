@@ -117,6 +117,7 @@ ecr:
 
 - Run the command to build the image by following command:
     ```
+
     make VERSION=1.0 CONF_PATH=${pwd}/config/image_scanner_sample_config.yml scan_images_build
     ```
 - Run the docker images of above one created by following command:
@@ -130,6 +131,7 @@ ecr:
 
 - HTML Report
 ![Html Report Example](Images/html_report.png)
+
 
 <br>
 

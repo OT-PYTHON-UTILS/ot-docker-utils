@@ -7,3 +7,4 @@ scan_creds_build:
 	docker build -t opstree/cred_scanner:$(VERSION) -f Dockerfile .
 scan_creds_run:
 	docker run -it --rm --name cred_scanner -v ${CONF_PATH}:/etc/scan_creds_sample_config.yml:ro -e CONF_PATH='/etc/scan_creds_sample_config.yml' -v  /var/run/docker.sock:/var/run/docker.sock opstree/cred_scanner:${VERSION} 
+
