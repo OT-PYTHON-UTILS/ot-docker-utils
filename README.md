@@ -1,9 +1,7 @@
 # Images  Scanning utility
 
 ## Images scanning utility :-<br/>
-In this utility of current version we can scan  the images present on the
-AWS ECR based on the images name and images versions provided in config as yaml.
-
+This utility scans private AWS ECR images defined by user in config file. 
 
 
 ## Prerequisite
@@ -101,7 +99,7 @@ ecr:
                     - repo:*
 ```
 
-## Steps to run the utility on locally
+## Steps to run the utility locally
 - Install [Docker](https://docs.docker.com/engine/install/)
 - Install [Trivy Tool](https://github.com/aquasecurity/trivy)
 - Clone the repository(branch-> dev) [Repo](https://github.com/OT-PYTHON-UTILS/ot-docker-utils.git)
@@ -116,17 +114,14 @@ ecr:
     python3 scripts/scan_images.py
     ```
 ## Steps to run the utility via Docker
-- Export the config file path via below command:
-  ```
-  export CONF_PATH="${pwd}/config/image_scanner_sample_config.yml"
-  ```
+
 - Run the command to build the image by following command:
     ```
-    docker build -t opstree/image_scanner:1.0 -f Dockerfile .
+    make VERSION=1.0 CONF_PATH=${pwd}/config/image_scanner_sample_config.yml scan_build
     ```
 - Run the docker images of above one created by following command:
     ```
-    docker run -it --rm --name image_scanner -v ${CONF_PATH}:/etc/image_scanner_config.yml:ro -e CONF_PATH='/etc/image_scanner_config.yml' -v ~/.aws:/root/.aws -v  /var/run/docker.sock:/var/run/docker.sock opstree/image_scanner:1.0
+    make VERSION=1.0 CONF_PATH=${pwd}/config/image_scanner_sample_config.yml scan_run
     ```
 
 ## Output

@@ -10,7 +10,7 @@ ecr:
         us-east-1:
           repositories:
             - repo:*
-    trademo:
+    opstree:
       aws_regions:
         us-east-2:
           repositories:
@@ -20,8 +20,7 @@ ecr:
         us-east-1:
           repositories:
             - repo:*
-    
-
+  
 
       
 
