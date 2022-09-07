@@ -1,10 +1,13 @@
+awscli
 setuptools
+botocore
+boto3
 pyyaml
 wheel
 pyinstaller
-boto3
-awscli
 JSON-log-formatter
+giturlparse
+requests
+git+https://github.com/OT-PYTHON-UTILS/ot-filesystem-libs.git
 git+https://github.com/OT-PYTHON-UTILS/ot-scanner-libs.git@develop
 git+https://github.com/OT-PYTHON-UTILS/ot-aws-libs.git@feature1.1
-git+https://github.com/OT-PYTHON-UTILS/ot-filesystem-libs.git
